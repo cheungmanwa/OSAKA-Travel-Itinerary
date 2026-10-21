@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大阪五日四夜甜蜜之旅 🍁 旅のしおり</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <style>
+        :root {
+            --bg-cream: #FFF9F5;
+            --sakura-pink: #FF8DA1;
+            --daruma-red: #E84A5F;
+            --maple-orange: #FF8450;
+            --matcha-green: #68B0AB;
+            --cocoa-dark: #4A3531;
+        }
+        body {
+            font-family: 'Zen Maru Gothic', 'Inter', sans-serif;
+            background-color: var(--bg-cream);
+            color: var(--cocoa-dark);
+            overflow-x: hidden;
+            background-image: radial-gradient(#ffd6de 1.2px, transparent 1.2px), radial-gradient(#ffe5d9 1.2px, #FFF9F5 1.2px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+        }
+        /* Japanese Washi Tape & Paper Card Effects */
+        .shiori-card {
+            background: rgba(255, 255, 255, 0.94);
+            backdrop-filter: blur(8px);
+            border: 2px solid #FFE3E8;
+            box-shadow: 0 10px 25px -5px rgba(232, 74, 95, 0.08), 0 4px 10px -2px rgba(74, 53, 49, 0.04);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .shiori-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px -6px rgba(232, 74, 95, 0.15);
+        }
+        .washi-tape {
+            position: relative;
+        }
+        .washi-tape::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-2deg);
+            width: 96px;
+            height: 24px;
+            background: repeating-linear-gradient(45deg, rgba(255, 141, 161, 0.45), rgba(255, 141, 161, 0.45) 8px, rgba(255, 214, 222, 0.55) 8px, rgba(255, 214, 222, 0.55) 16px);
+            border-left: 2px dashed rgba(255,255,255,0.8);
+            border-right: 2px dashed rgba(255,255,255,0.8);
+            z-index: 10;
+            border-radius: 2px;
+        }
+        /* Animations */
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(3deg); }
+        }
+        @keyframes darumaWobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-10deg); }
+            75% { transform: rotate(10deg); }
+        }
+        @keyframes planeFly {
+            0% { transform: translateX(-10px) translateY(2px); }
+            50% { transform: translateX(10px) translateY(-4px); }
+            100% { transform: translateX(-10px) translateY(2px); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(232, 74, 95, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(232, 74, 95, 0); }
+        }
+        .animate-float { animation: floatSlow 3.5s ease-in-out infinite; }
+        .animate-daruma { animation: darumaWobble 2.4s ease-in-out infinite; transform-origin: bottom center; }
+        .animate-plane { animation: planeFly 4s ease-in-out infinite; }
+        .btn-pulse { animation: pulseGlow 2s infinite; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #FFF9F5; }
+        ::-webkit-scrollbar-thumb { background: #FFB3C1; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF8DA1; }
+
+        #particleCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative selection:bg-pink-200 selection:text-pink-900">
+
+    <!-- Falling Maple Leaves / Sparkles Canvas -->
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- Toast Notification Box (No alert()) -->
+    <div id="toastBox" class="fixed bottom-6 right-6 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-[#4A3531] text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 border-2 border-pink-300">
+            <span id="toastIcon" class="text-xl">✨</span>
+            <span id="toastText" class="font-bold text-sm">已複製到剪貼簿！</span>
+        </div>
+    </div>
+
+    <!-- Sweet Surprise Modal for Girlfriend -->
+    <div id="surpriseModal" class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 border-4 border-pink-300 shadow-2xl text-center relative transform transition-all scale-95" id="surpriseCard">
+            <button onclick="closeSurpriseModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-pink-50 hover:bg-pink-100 text-pink-500 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-pink-100 to-amber-100 rounded-full flex items-center justify-center text-4xl mb-4 animate-daruma shadow-inner">
+                💝
+            </div>
+            <span class="px-3 py-1 bg-pink-100 text-pink-600 rounded-full text-xs font-bold tracking-wider">SPECIAL TRIP FOR YOU</span>
+            <h3 class="text-2xl font-black mt-3 text-[#4A3531]">大阪 5日4夜 專屬甜蜜手冊 🍁</h3>
+            <p class="text-sm text-gray-600 mt-3 leading-relaxed">
+                親愛嘅！呢份行程已經幫你安排好晒：<br>
+                ✨ <b>第一晚直衝道頓堀</b> 食超巨型帝王蟹腳＋神戶牛壽喜燒🦀🥩<br>
+                ✨ <b>USJ Express 7 快證</b> 輕鬆玩轉瑪利歐＆咚奇剛礦車🍄<br>
+                ✨ <b>酒店樓下就係空庭溫泉</b>，浸完靚湯直接上房瞓覺♨️<br>
+                ✨ <b>勝尾寺滿山小達摩</b> 打卡＋買齊星空咖啡味夾心餅🍪
+            </p>
+            <div class="mt-5 p-3 bg-amber-50 rounded-2xl border border-amber-200 text-xs text-amber-800 font-medium">
+                💡 任務：帶住靚靚心情出發，交通同攻略交晒畀我啦！
+            </div>
+            <button onclick="triggerHeartShower(); closeSurpriseModal();" class="mt-5 w-full py-3.5 bg-gradient-to-r from-[#E84A5F] to-[#FF8450] text-white font-bold rounded-2xl shadow-lg hover:opacity-95 transition flex items-center justify-center gap-2">
+                <span>嘩！好期待呀，即刻睇行程</span>
+                <i class="fa-solid fa-heart animate-bounce"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Sticky Navigation -->
+    <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-pink-100 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#E84A5F] to-[#FF8450] flex items-center justify-center text-white shadow-sm animate-daruma cursor-pointer" onclick="openSurpriseModal()" title="點擊打開驚喜小卡">
+                    🏮
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="font-black text-base md:text-lg tracking-tight text-[#4A3531]">OSAKA 旅のしおり</span>
+                        <span class="text-[11px] bg-pink-100 text-[#E84A5F] px-2 py-0.5 rounded-full font-bold">11.14 - 11.18</span>
+                    </div>
+                    <p class="text-[11px] text-gray-500 hidden sm:block">五日四夜雙人秋日企劃 ・ 紅葉 × 溫泉 × 環球影城 × 帝王蟹和牛</p>
+                </div>
+            </div>
+
+            <!-- Quick Jump & Particle Switcher -->
+            <div class="flex items-center gap-1.5 sm:gap-2">
+                <button onclick="cycleParticleTheme()" id="themeBtn" class="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 text-xs font-bold transition flex items-center gap-1.5">
+                    <span id="themeIcon">🍁</span>
+                    <span id="themeLabel" class="hidden md:inline">紅葉特效</span>
+                </button>
+                <button onclick="openSurpriseModal()" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-bold shadow-sm hover:opacity-95 transition flex items-center gap-1 btn-pulse">
+                    <i class="fa-solid fa-gift"></i>
+                    <span>給妳的小卡</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto px-4 pt-6 pb-20 relative z-10 space-y-8">
+
+        <!-- Hero Scrapbook Cover -->
+        <section class="shiori-card rounded-3xl p-6 md:p-8 relative overflow-hidden">
+            <div class="absolute -right-8 -top-8 w-40 h-40 bg-pink-100/60 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="absolute -left-8 -bottom-8 w-40 h-40 bg-amber-100/60 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <div class="space-y-3 max-w-xl">
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-[#E84A5F] text-xs font-bold">
+                        <span>✈️ 香港快運 UO850 / UO689</span>
+                        <span>•</span>
+                        <span>🏨 ART 大阪灣酒店 (天空樓層)</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-black text-[#4A3531] leading-tight">
+                        大阪秋日・五日四夜<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#E84A5F] via-[#FF8450] to-[#F9A826]">食盡帝王蟹和牛 × 玩轉 USJ</span> 🦀🎢
+                    </h1>
+                    <p class="text-sm text-gray-600 leading-relaxed">
+                        專為我哋兩個人度身訂造嘅行程表！結合咗<b>第一晚道頓堀帝王蟹神戶牛壽喜燒</b>、<b>USJ 特快入場券 7 黃金時間軸</b>、<b>空庭溫泉浴衣打卡</b>同埋<b>勝尾寺滿滿小達摩</b>。禁下面嘅分頁就可以輕鬆睇每日路線！
+                    </p>
+                </div>
+
+                <!-- Cute Stamp / Weather Box -->
+                <div class="w-full md:w-auto flex sm:flex-row md:flex-col gap-3 shrink-0">
+                    <div class="flex-1 bg-gradient-to-br from-[#FFF5F5] to-[#FFF0E6] border-2 border-dashed border-rose-300 rounded-2xl p-4 text-center relative">
+                        <div class="text-xs font-bold text-rose-500 tracking-widest">OSAKA STAMP</div>
+                        <div class="my-1.5 text-3xl flex items-center justify-center gap-2">
+                            <span class="animate-daruma inline-block">🎯</span>
+                            <span class="animate-float inline-block">🦀</span>
+                            <span class="animate-daruma inline-block">🍄</span>
+                        </div>
+                        <div class="text-xs font-bold text-[#4A3531]">11月14日 (六) – 11月18日 (三)</div>
+                        <div class="text-[11px] text-gray-500 mt-0.5">預測氣溫：10°C – 17°C（涼爽秋意🍁）</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Flight & Hotel Mini Summary Pills -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-6 pt-5 border-t border-pink-100">
+                <div class="bg-amber-50/70 rounded-2xl p-3.5 border border-amber-200/80 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-plane-departure animate-plane"></i>
+                    </div>
+                    <div class="text-xs">
+                        <div class="font-bold text-amber-900">去程：11月14日 (六) UO850</div>
+                        <div class="text-gray-600">09:45 香港 (HKG) ➔ 14:20 關西 (KIX)</div>
+                    </div>
+                </div>
+
+                <div class="bg-rose-50/70 rounded-2xl p-3.5 border border-rose-200/80 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-400/20 text-rose-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-hotel"></i>
+                    </div>
+                    <div class="text-xs">
+                        <div class="font-bold text-rose-900">連住4晚：ART 大阪灣酒店</div>
+                        <div class="text-gray-600">天空樓層大床房・弁天町站直通空庭溫泉</div>
+                    </div>
+                </div>
+
+                <div class="bg-teal-50/70 rounded-2xl p-3.5 border border-teal-200/80 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-teal-400/20 text-teal-700 flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-plane-arrival"></i>
+                    </div>
+                    <div class="text-xs">
+                        <div class="font-bold text-teal-900">回程：11月18日 (三) UO689</div>
+                        <div class="text-gray-600">20:15 關西 (KIX) ➔ 23:55 香港 (HKG)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Feature Navigation Tabs -->
+        <nav class="flex overflow-x-auto gap-2 pb-1 no-scrollbar" aria-label="行程分頁">
+            <button onclick="switchMainSection('daily')" id="nav-daily" class="main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-[#E84A5F] text-white shadow-md">
+                <span>🗓️</span> <span>5日4夜每日行程</span>
+            </button>
+            <button onclick="switchMainSection('day1route')" id="nav-day1route" class="main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-white text-[#4A3531] border border-pink-200 hover:bg-pink-50">
+                <span>🚇</span> <span>Day 1 機場＆一楽交通圖</span>
+            </button>
+            <button onclick="switchMainSection('usj')" id="nav-usj" class="main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-white text-[#4A3531] border border-pink-200 hover:bg-pink-50">
+                <span>🍄</span> <span>USJ 快證時間軸＆12秘笈</span>
+            </button>
+            <button onclick="switchMainSection('food')" id="nav-food" class="main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-white text-[#4A3531] border border-pink-200 hover:bg-pink-50">
+                <span>🦀</span> <span>和牛帝王蟹＆手信清單</span>
+            </button>
+            <button onclick="switchMainSection('luggage')" id="nav-luggage" class="main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-white text-[#4A3531] border border-pink-200 hover:bg-pink-50">
+                <span>🧳</span> <span>1大篋+2手提打包清單</span>
+            </button>
+        </nav>
+
+        <!-- ==================== SECTION 1: 5-DAY DAILY ITINERARY ==================== -->
+        <section id="sec-daily" class="space-y-6">
+            <!-- Day Selector Pills -->
+            <div class="grid grid-cols-5 gap-2 sm:gap-3">
+                <button onclick="selectDay(1)" id="dayBtn-1" class="day-pill p-3 rounded-2xl border-2 transition text-center bg-gradient-to-b from-[#E84A5F] to-[#FF6B6B] text-white border-[#E84A5F] shadow-md">
+                    <div class="text-[11px] opacity-90 font-bold">11/14 (六)</div>
+                    <div class="text-base sm:text-lg font-black">Day 1</div>
+                    <div class="text-[11px] mt-0.5 truncate">抵阪・帝王蟹🦀</div>
+                </button>
+                <button onclick="selectDay(2)" id="dayBtn-2" class="day-pill p-3 rounded-2xl border-2 transition text-center bg-white text-[#4A3531] border-pink-200 hover:border-pink-400">
+                    <div class="text-[11px] text-gray-400 font-bold">11/15 (日)</div>
+                    <div class="text-base sm:text-lg font-black">Day 2</div>
+                    <div class="text-[11px] mt-0.5 truncate">USJ 狂歡日🎢</div>
+                </button>
+                <button onclick="selectDay(3)" id="dayBtn-3" class="day-pill p-3 rounded-2xl border-2 transition text-center bg-white text-[#4A3531] border-pink-200 hover:border-pink-400">
+                    <div class="text-[11px] text-gray-400 font-bold">11/16 (一)</div>
+                    <div class="text-base sm:text-lg font-black">Day 3</div>
+                    <div class="text-[11px] mt-0.5 truncate">木津・空庭♨️</div>
+                </button>
+                <button onclick="selectDay(4)" id="dayBtn-4" class="day-pill p-3 rounded-2xl border-2 transition text-center bg-white text-[#4A3531] border-pink-200 hover:border-pink-400">
+                    <div class="text-[11px] text-gray-400 font-bold">11/17 (二)</div>
+                    <div class="text-base sm:text-lg font-black">Day 4</div>
+                    <div class="text-[11px] mt-0.5 truncate">勝尾寺達摩🎯</div>
+                </button>
+                <button onclick="selectDay(5)" id="dayBtn-5" class="day-pill p-3 rounded-2xl border-2 transition text-center bg-white text-[#4A3531] border-pink-200 hover:border-pink-400">
+                    <div class="text-[11px] text-gray-400 font-bold">11/18 (三)</div>
+                    <div class="text-base sm:text-lg font-black">Day 5</div>
+                    <div class="text-[11px] mt-0.5 truncate">補貨・賦歸✈️</div>
+                </button>
+            </div>
+
+            <!-- Dynamic Day Content Container -->
+            <div id="dayContentContainer" class="shiori-card washi-tape rounded-3xl p-6 md:p-8">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 2: DAY 1 METRO TRANSFER GUIDE ==================== -->
+        <section id="sec-day1route" class="hidden space-y-6">
+            <div class="shiori-card washi-tape rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-pink-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 bg-rose-100 text-[#E84A5F] rounded-full text-xs font-bold">DAY 1 交通懶人包</span>
+                        <h2 class="text-2xl font-black mt-2">🚇 關西機場 ➔ 酒店 ➔ 和牛海鮮 一楽 道頓堀店</h2>
+                        <p class="text-xs text-gray-500 mt-1">全程設有電梯／扶手電梯，拉住大篋都超輕鬆！直接用 ICOCA / Suica 拍卡即可。</p>
+                    </div>
+                    <button onclick="copyText('日本〒542-0071 Osaka, Chuo Ward, Dotonbori, 1 Chome−1−15 大都信用ビル 3階', '已複製「和牛海鮮 一楽」地址！')" class="shrink-0 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl text-xs font-bold shadow transition flex items-center gap-2 self-start">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>複製餐廳地址開 Google Map</span>
+                    </button>
+                </div>
+
+                <!-- Route Part 1: Airport to Hotel -->
+                <div class="bg-blue-50/60 border-2 border-blue-200 rounded-3xl p-5 space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm">1</span>
+                            <h3 class="font-black text-lg text-blue-950">第一段：關西國際機場 (KIX) ➔ ART 大阪灣酒店</h3>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-bold">
+                            <span class="px-2.5 py-1 bg-blue-100 text-blue-800 rounded-lg">⏱️ 約 60 分鐘 (直達免轉車)</span>
+                            <span class="px-2.5 py-1 bg-white text-blue-900 rounded-lg border border-blue-200">💴 ¥1,210</span>
+                        </div>
+                    </div>
+
+                    <!-- Step Visual Flow -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                        <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm relative">
+                            <div class="text-xs font-bold text-blue-600 mb-1">STEP A・上車</div>
+                            <div class="font-black text-base">關西空港駅 (JR 藍色閘口)</div>
+                            <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                14:20 落機入境後，上 2 樓過天橋去車站。拍 ICOCA 入<b>藍色 JR 閘口</b>，乘搭<b>「JR 關空快速（往天王寺/大阪/京橋）」</b>。
+                            </p>
+                            <div class="mt-2 p-2 bg-amber-50 rounded-xl text-[11px] text-amber-800 font-bold">
+                                ⚠️ 貼士：請坐前 4 卡車廂（第 1–4 卡去大阪環狀線；後 4 卡會中途分開去和歌山）。
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
+                            <div class="text-xs font-bold text-blue-600 mb-1">STEP B・落車</div>
+                            <div class="font-black text-base">JR 弁天町駅 (Bentencho)</div>
+                            <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                唔使轉車一程坐到底！由機場出發約 60 分鐘即達<b>「JR 弁天町站」</b>。請往<b>「北口 (North Exit)」</b>方向出閘。
+                            </p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm">
+                            <div class="text-xs font-bold text-blue-600 mb-1">STEP C・Check-in</div>
+                            <div class="font-black text-base">ART 大阪灣酒店 (2F 直通)</div>
+                            <p class="text-xs text-gray-600 mt-1.5 leading-relaxed">
+                                北口出閘後直行 2 樓有蓋連接天橋，行 <b>2–3 分鐘</b>直接入到 <b>Osaka Bay Tower</b> 酒店大堂，完全唔使淋雨或搬樓梯！
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Route Part 2: Hotel to Wagyu Ichiraku Dotonbori -->
+                <div class="bg-rose-50/70 border-2 border-rose-200 rounded-3xl p-5 space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="w-8 h-8 rounded-xl bg-[#E84A5F] text-white font-black flex items-center justify-center text-sm">2</span>
+                            <h3 class="font-black text-lg text-rose-950">第二段：酒店 (弁天町) ➔ 和牛海鮮 一楽 道頓堀店</h3>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs font-bold">
+                            <span class="px-2.5 py-1 bg-rose-100 text-rose-800 rounded-lg">⏱️ 地鐵約 15 分鐘 + 步行 3 分鐘</span>
+                            <span class="px-2.5 py-1 bg-white text-rose-900 rounded-lg border border-rose-200">💴 ¥290</span>
+                        </div>
+                    </div>
+
+                    <!-- Subway Transfer Diagram -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 pt-2">
+                        <div class="bg-white p-4 rounded-2xl border border-emerald-200 shadow-sm">
+                            <span class="inline-block px-2 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-bold">Osaka Metro 中央線 (綠線)</span>
+                            <div class="font-black text-base mt-1.5">弁天町站 (C13)</div>
+                            <p class="text-xs text-gray-600 mt-1">由酒店 2 樓天橋行去地鐵中央線，往「長田／生駒」方向坐 <b>5 個站</b>。</p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-sm">
+                            <span class="inline-block px-2 py-0.5 rounded bg-amber-700 text-white text-[10px] font-bold">站內轉乘・堺筋線 (啡線)</span>
+                            <div class="font-black text-base mt-1.5">堺筋本町站 (C17/K15)</div>
+                            <p class="text-xs text-gray-600 mt-1">落車後跟啡色「堺筋線」指示轉車，往「天下茶屋」方向坐 <b>2 個站</b>。</p>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-rose-200 shadow-sm">
+                            <span class="inline-block px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold">抵達出站</span>
+                            <div class="font-black text-base mt-1.5">日本橋站 (K17)</div>
+                            <p class="text-xs text-gray-600 mt-1">喺<b>「2 號出口」</b>出地面（近道頓堀東口），轉左入道頓堀商店街。</p>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-rose-500 to-amber-500 text-white p-4 rounded-2xl shadow-md">
+                            <span class="inline-block px-2 py-0.5 rounded bg-white/20 text-white text-[10px] font-bold">目的地・搭電梯上 3F</span>
+                            <div class="font-black text-base mt-1.5">和牛海鮮 一楽 🦀</div>
+                            <p class="text-xs text-white/95 mt-1">經「かに道楽 東店」直行約 150 米，見到<b>大都信用ビル</b>搭電梯上 3 樓即達！</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/90 rounded-2xl p-3.5 border border-rose-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                        <div>
+                            <span class="font-bold text-[#E84A5F]">💡 備選轉乘路線：</span>
+                            <span>亦可以由「弁天町」坐中央線 2 個站到<b>「阿波座站」</b>，轉粉紅色<b>千日前線</b>坐 3 個站到「日本橋站」或「難波站」出，一樣咁方便！</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 3: USJ EXPRESS PASS 7 & 12 TIPS ==================== -->
+        <section id="sec-usj" class="hidden space-y-6">
+            <!-- Express Pass 7 Time-Slot Tracker -->
+            <div class="shiori-card washi-tape rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-pink-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold">11月15日 (星期日) 訂單已確認</span>
+                        <h2 class="text-2xl font-black mt-2">🍄 USJ 特快入場券 7 (Minecart & Selection) 時間軸</h2>
+                        <p class="text-xs text-gray-500 mt-1">已綁定你張訂單嘅指定入場時間！記得提早下載 USJ 官方 APP 同帶備 100円硬幣存包。</p>
+                    </div>
+                    <div class="bg-rose-50 border border-rose-200 px-4 py-2 rounded-2xl text-xs font-bold text-[#E84A5F]">
+                        🎟️ 門票＋Express 7 雙人已購齊
+                    </div>
+                </div>
+
+                <!-- Timeline Steps -->
+                <div class="relative pl-6 sm:pl-8 border-l-4 border-dashed border-amber-300 space-y-5">
+                    <!-- Slot 1 -->
+                    <div class="relative bg-amber-50/70 border border-amber-200 rounded-2xl p-4">
+                        <span class="absolute -left-[38px] sm:-left-[46px] top-4 w-7 h-7 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center shadow">01</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-black text-amber-900 text-base">08:00 – 09:40｜入園黃金首小時（自選快證 / Single 通道）</span>
+                            <span class="text-xs px-2.5 py-0.5 bg-amber-200/70 text-amber-900 rounded-full font-bold">強制存包需 100円🪙</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1.5">
+                            趁 09:50 入瑪利歐園區前，先去玩 <b>好萊塢美夢乘車遊、飛天翼龍 或 太空幻想列車</b>！排隊時同職員講「Single」或舉手指「1」行單人通道超快。
+                        </p>
+                    </div>
+
+                    <!-- Slot 2: Nintendo World Fixed Time -->
+                    <div class="relative bg-gradient-to-r from-red-50 to-amber-50 border-2 border-[#E84A5F] rounded-2xl p-4 shadow-sm">
+                        <span class="absolute -left-[38px] sm:-left-[46px] top-4 w-7 h-7 rounded-full bg-[#E84A5F] text-white text-xs font-bold flex items-center justify-center shadow">02</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-black text-[#E84A5F] text-base">09:50 – 11:20｜🌟 超級任天堂世界™ 黃金三連玩（指定場次）</span>
+                            <span class="text-xs px-2.5 py-0.5 bg-[#E84A5F] text-white rounded-full font-bold">Express 7 必守時間</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-3">
+                            <div class="bg-white p-3 rounded-xl border border-rose-200">
+                                <div class="text-[11px] font-bold text-rose-600">⏰ 09:50 - 10:20</div>
+                                <div class="font-black text-sm mt-0.5">🏎️ 瑪利歐賽車：庫巴的挑戰書</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">戴上手環撞金幣得分！</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-200">
+                                <div class="text-[11px] font-bold text-emerald-600">⏰ 10:20 - 10:50</div>
+                                <div class="font-black text-sm mt-0.5">🦖 耀西冒險™</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">俯瞰成個瑪利歐園區影相最靚！</div>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-amber-300">
+                                <div class="text-[11px] font-bold text-amber-700">⏰ 10:50 - 11:20</div>
+                                <div class="font-black text-sm mt-0.5">🍌 咚奇剛的瘋狂礦車™</div>
+                                <div class="text-[11px] text-gray-500 mt-0.5">最新斷軌過山車超刺激！</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slot 3: Lunch & Shows -->
+                    <div class="relative bg-white border border-pink-200 rounded-2xl p-4">
+                        <span class="absolute -left-[38px] sm:-left-[46px] top-4 w-7 h-7 rounded-full bg-pink-400 text-white text-xs font-bold flex items-center justify-center shadow">03</span>
+                        <div class="font-black text-[#4A3531] text-base">12:00 – 17:30｜🦈 大白鯊披薩午餐 ＆ 柯南/哆啦A夢劇場</div>
+                        <p class="text-xs text-gray-600 mt-1.5">
+                            午餐必食親善村<b>「大白鯊披薩🍕」</b>（CP值高又好打卡）！下午睇劇場：<b>哆啦A夢排隊企左邊</b>有機會坐前排；<b>柯南揀中間偏後</b>（基德由左側登場！）。
+                        </p>
+                    </div>
+
+                    <!-- Slot 4: Harry Potter & Night Jaws -->
+                    <div class="relative bg-indigo-50/80 border border-indigo-200 rounded-2xl p-4">
+                        <span class="absolute -left-[38px] sm:-left-[46px] top-4 w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shadow">04</span>
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-black text-indigo-950 text-base">17:40 – 20:00｜🪄 哈利波特園區 ＆ 夜玩大白鯊</span>
+                            <span class="text-xs px-2.5 py-0.5 bg-indigo-600 text-white rounded-full font-bold">17:40-18:10 鷹馬飛行</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-1.5">
+                            黃昏入哈利波特園區最有魔法氣氛！<b>17:40–18:10 玩鷹馬飛行™</b>，再玩<b>禁忌之旅</b>（需 100円硬幣存包）及免費拎魔法地圖。入黑後去玩<b>大白鯊（行 Single 通道＋坐左側）</b>！離園前憑護照退稅。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- USJ 12 Insider Tips Interactive Checklist -->
+            <div class="shiori-card rounded-3xl p-6 md:p-8">
+                <h3 class="text-xl font-black flex items-center gap-2 mb-4">
+                    <span>💡</span>
+                    <span>USJ 在職員工 12 條良心建議（點擊可打勾確認）</span>
+                </h3>
+                <div id="usjTipsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 4: FOOD & PRESS BUTTER SAND ==================== -->
+        <section id="sec-food" class="hidden space-y-6">
+            <!-- Wagyu & King Crab Comparison -->
+            <div class="shiori-card washi-tape rounded-3xl p-6 md:p-8 space-y-5">
+                <div>
+                    <span class="px-3 py-1 bg-rose-100 text-[#E84A5F] rounded-full text-xs font-bold">心齋橋 / 道頓堀 必食重頭戲</span>
+                    <h2 class="text-2xl font-black mt-2">🦀 三大神戶牛＋帝王蟹吃到飽 終極攻略</h2>
+                    <p class="text-xs text-gray-500 mt-1">Day 1 晚餐已鎖定「和牛海鮮 一楽 道頓堀店」！Day 4 晚餐可以喺另外兩間揀一間再刷和牛同蟹腳～</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Restaurant 1: Ichiraku (Locked for Day 1) -->
+                    <div class="rounded-3xl border-2 border-[#E84A5F] bg-gradient-to-b from-rose-50/90 to-white p-5 relative shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="px-2.5 py-1 bg-[#E84A5F] text-white rounded-full text-[11px] font-bold">⭐ Day 1 晚餐已鎖定</span>
+                                <span class="text-xs font-bold text-rose-600">壽喜燒火鍋放題</span>
+                            </div>
+                            <h3 class="text-lg font-black mt-2.5 text-[#4A3531]">和牛海鮮 一楽 道頓堀店</h3>
+                            <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                                隱藏喺道頓堀 3 樓（有電梯超方便）！主打<b>超巨型帝王蟹腳任食</b>＋極上品神戶和牛套餐（一次食齊 3 種和牛），配壽喜燒湯底涮肉最夾，蟹腳鮮甜飽滿！
+                            </p>
+                            <div class="mt-3 p-2.5 bg-white rounded-xl border border-rose-100 text-[11px] text-gray-600 space-y-1">
+                                <div>📍 中央区道頓堀 1-1-15 大都信用ビル 3階</div>
+                                <div>🚇 日本橋站 2號出口步行 3 分鐘</div>
+                            </div>
+                        </div>
+                        <button onclick="copyText('日本〒542-0071 Osaka, Chuo Ward, Dotonbori, 1 Chome−1−15 大都信用ビル 3階', '已複製「和牛海鮮 一楽」地址！')" class="mt-4 w-full py-2.5 bg-[#E84A5F] hover:bg-rose-600 text-white rounded-xl text-xs font-bold transition">
+                            📋 複製地址
+                        </button>
+                    </div>
+
+                    <!-- Restaurant 2: Yakiniku Kado -->
+                    <div class="rounded-3xl border-2 border-amber-200 bg-white p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full text-[11px] font-bold">🔥 Day 4 候選 A</span>
+                                <span class="text-xs font-bold text-amber-600">認證原塊神戶牛燒肉</span>
+                            </div>
+                            <h3 class="text-lg font-black mt-2.5 text-[#4A3531]">大阪・燒肉華道</h3>
+                            <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                                揀神戶牛方案<b>直接送活體鮑魚＋帝王蟹腳</b>！除咗有認證原塊神戶牛燒肉，仲包埋刺身海鮮握壽司、炸物、冷麵、石鍋拌飯任食。
+                            </p>
+                            <div class="mt-3 p-2.5 bg-amber-50/60 rounded-xl border border-amber-100 text-[11px] text-gray-600 space-y-1">
+                                <div>📍 中央区心斎橋筋 2-3-12 ダイヤモンドビル 2F</div>
+                                <div>⏰ 12:00 – 00:00（午晚餐皆開）</div>
+                            </div>
+                        </div>
+                        <button onclick="copyText('大阪府大阪市中央区心斎橋筋２丁目３−12 ダイヤモンドビル 2F', '已複製「燒肉華道」地址！')" class="mt-4 w-full py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition">
+                            📋 複製地址
+                        </button>
+                    </div>
+
+                    <!-- Restaurant 3: Gyumaru Shinsaibashi -->
+                    <div class="rounded-3xl border-2 border-pink-200 bg-white p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="px-2.5 py-1 bg-pink-100 text-pink-800 rounded-full text-[11px] font-bold">🍲 Day 4 候選 B</span>
+                                <span class="text-xs font-bold text-pink-600">松葉蟹＋帝王蟹壽喜燒</span>
+                            </div>
+                            <h3 class="text-lg font-black mt-2.5 text-[#4A3531]">牛丸 心斎橋</h3>
+                            <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                                牧場直送神戶牛配<b>松葉蟹＋帝王蟹吃到飽</b>（¥9,900–¥24,200 不等，100分鐘）！QR Code 點餐，連鰻魚丼、壽司、炸物同粒粒分明日本白飯都超出色。
+                            </p>
+                            <div class="mt-3 p-2.5 bg-pink-50/60 rounded-xl border border-pink-100 text-[11px] text-gray-600 space-y-1">
+                                <div>📍 東心斎橋 2-8-26 FUKU BLD.心斎橋 2F B号</div>
+                                <div>⏰ 17:00 – 00:00（僅開晚市）</div>
+                            </div>
+                        </div>
+                        <button onclick="copyText('日本〒542-0083 Osaka, Chuo Ward, Higashishinsaibashi, 2 Chome−8−26 FUKU BLD.心斎橋 2F B号', '已複製「牛丸 心斎橋」地址！')" class="mt-4 w-full py-2.5 bg-pink-100 hover:bg-pink-200 text-pink-900 rounded-xl text-xs font-bold transition">
+                            📋 複製地址
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Press Butter Sand Souvenir Collector -->
+            <div class="shiori-card rounded-3xl p-6 md:p-8 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-bold">手信必買 Checklist（賞味期約 10–14 日）</span>
+                        <h3 class="text-xl font-black mt-2">🍪 Press Butter Sand 口味願望清單（建議 Day 4 梅田 LUCUA B1F 買）</h3>
+                    </div>
+                    <span class="text-xs text-gray-500">點擊口味加入購物籃 🛒</span>
+                </div>
+
+                <div id="pbsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SECTION 5: LUGGAGE & PACKING CHECKLIST ==================== -->
+        <section id="sec-luggage" class="hidden space-y-6">
+            <div class="shiori-card washi-tape rounded-3xl p-6 md:p-8 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-pink-100 pb-4">
+                    <div>
+                        <span class="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold">1 大篋 + 2 隨身行李 黃金收納法</span>
+                        <h2 class="text-2xl font-black mt-2">🧳 11月大阪秋冬雙人打包＆液體寄艙清單</h2>
+                        <p class="text-xs text-gray-500 mt-1">去程將大篋留空一半＋帶定一個摺疊旅行袋，回程裝滿藥妝同 USJ 戰利品都唔怕超重！</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs font-bold text-gray-500">準備進度</div>
+                        <div id="packProgressText" class="text-2xl font-black text-[#E84A5F]">0%</div>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full h-3 bg-pink-100 rounded-full overflow-hidden">
+                    <div id="packProgressBar" class="h-full bg-gradient-to-r from-[#E84A5F] to-[#FF8450] transition-all duration-500" style="width: 0%"></div>
+                </div>
+
+                <!-- Packing Items Grid -->
+                <div id="packingGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // ==================== DATA DEFINITIONS ====================
+        const itineraryData = {
+            1: {
+                date: "11月14日 (星期六)",
+                title: "Day 1：抵達大阪・直衝道頓堀帝王蟹＋神戶牛壽喜燒 🦀",
+                weather: "12°C - 17°C｜微涼舒適，建議薄長袖＋防風外套",
+                highlight: "免轉車直達酒店放低大篋，夜晚食和牛海鮮一楽＋固力果跑跑人打卡！",
+                schedule: [
+                    {
+                        time: "09:45 - 14:20",
+                        icon: "✈️",
+                        tag: "航班 UO850",
+                        title: "香港國際機場 (HKG) ➔ 大阪關西機場 (KIX)",
+                        desc: "乘搭香港快運 UO850 出發！記得將最厚嘅外套直接著上身，騰空大篋位置。"
+                    },
+                    {
+                        time: "15:15 - 16:15",
+                        icon: "🚆",
+                        tag: "一程直達",
+                        title: "乘搭 JR 關空快速 直達「弁天町站」",
+                        desc: "由關西空港駅入藍色 JR 閘口，坐「關空快速（前 4 卡車廂）」約 60 分鐘直達 JR 弁天町站（¥1,210）。北口出閘行 2 樓有蓋天橋 2 分鐘直通酒店！"
+                    },
+                    {
+                        time: "16:20 - 17:30",
+                        icon: "🏨",
+                        tag: "高空海景房",
+                        title: "Check-in ART 大阪灣酒店（天空樓層大床房）",
+                        desc: "辦理入住同放低行李，喺高樓層房間欣賞大阪灣黃昏靚景，順便向酒店確認第 2 日朝早去 USJ 嘅免費接駁巴士時間。"
+                    },
+                    {
+                        time: "18:00 - 20:00",
+                        icon: "🦀",
+                        tag: "第一晚重頭戲",
+                        title: "晚餐：和牛海鮮 一楽 道頓堀店（帝王蟹＋神戶牛放題）",
+                        desc: "由弁天町坐地鐵中央線去「堺筋本町」轉堺筋線到「日本橋站」2號出口（行3分鐘）。搭電梯上大都信用ビル 3樓，歎超巨型帝王蟹腳任食＋3種神戶和牛壽喜燒！"
+                    },
+                    {
+                        time: "20:00 - 21:30",
+                        icon: "📸",
+                        tag: "地標打卡",
+                        title: "道頓堀固力果跑跑人 ＆ 元祖串炸達摩大叔打卡",
+                        desc: "食飽喺道頓堀運河散步消食，同固力果跑跑人招牌、道頓堀「串炸達摩」門口巨型憤怒達摩社長影相，早啲返酒店休息備戰聽日 USJ！"
+                    }
+                ]
+            },
+            2: {
+                date: "11月15日 (星期日)",
+                title: "Day 2：日本環球影城 USJ 全日狂歡（Express 7 專場）🍄",
+                weather: "10°C - 16°C｜海邊入黑後偏涼，必帶護照、雨衣、100円硬幣",
+                highlight: "09:50 準時入瑪利歐園區連玩 3 大設施，黃昏玩哈利波特，夜晚坐左側玩大白鯊！",
+                schedule: [
+                    {
+                        time: "07:30 - 08:30",
+                        icon: "🚌",
+                        tag: "極速入園",
+                        title: "由酒店出發前往日本環球影城 (USJ)",
+                        desc: "可乘搭酒店免費預約接駁巴士直達，或由 JR 弁天町站坐去「西九條」轉夢咲線（全程僅約 10 分鐘）。預先戴好能量手環直接入園！"
+                    },
+                    {
+                        time: "08:30 - 09:40",
+                        icon: "🎢",
+                        tag: "黃金首小時",
+                        title: "先衝刺激設施（Single 通道 / Express 自選項目）",
+                        desc: "趁入任天堂園區前，先玩飛天翼龍、好萊塢美夢乘車遊或太空幻想列車（呢幾個項目需用 100円硬幣存包，用完退回）。"
+                    },
+                    {
+                        time: "09:50 - 11:20",
+                        icon: "🍄",
+                        tag: "Express 7 指定時間",
+                        title: "超級任天堂世界™：瑪利歐賽車 ➔ 耀西冒險 ➔ 咚奇剛礦車",
+                        desc: "憑快證 09:50 入園！【09:50-10:20】瑪利歐賽車：庫巴的挑戰書 ➔ 【10:20-10:50】耀西冒險 ➔ 【10:50-11:20】咚奇剛的瘋狂礦車！"
+                    },
+                    {
+                        time: "12:00 - 17:30",
+                        icon: "🍕",
+                        tag: "美食＆劇場",
+                        title: "午餐「大白鯊披薩」＋ 哆啦A夢 / 柯南 4D 劇場表演",
+                        desc: "去親善村食 CP 值極高嘅大白鯊披薩打卡！下午睇演出：哆啦A夢排隊企左邊爭取前排；柯南揀中間偏後座位（怪盜基德由左側登場）。"
+                    },
+                    {
+                        time: "17:40 - 20:30",
+                        icon: "🪄",
+                        tag: "夜間魔法",
+                        title: "哈利波特鷹馬飛行 (17:40-18:10) ＆ 夜玩大白鯊",
+                        desc: "黃昏入魔法世界玩鷹馬飛行同禁忌之旅（需100円存包）。入黑後行 Single 通道玩大白鯊（揀左側座位最正）！離園前憑護照退稅。"
+                    }
+                ]
+            },
+            3: {
+                date: "11月16日 (星期一)",
+                title: "Day 3：木津市場海鮮朝食 ➔ 難波心齋橋掃貨 ➔ 空庭溫泉 ♨️",
+                weather: "11°C - 17°C｜輕鬆慢活日，浸完溫泉直接搭電梯上房",
+                highlight: "避開周日休市去木津市場食海膽鰻魚飯，夜晚喺酒店同棟「空庭溫泉」著浴衣影千本鳥居！",
+                schedule: [
+                    {
+                        time: "08:30 - 10:30",
+                        icon: "🍣",
+                        tag: "在地人市場",
+                        title: "木津卸賣市場（必食海鮮丼、海膽、川上商店鰻魚飯）",
+                        desc: "星期一正常營業！由弁天町去「大國町站」1號出口行 3 分鐘即達。場內食超新鮮海膽刺身、海鮮蓋飯同百年老店炭燒鰻魚飯，仲可以買日本當造水果。"
+                    },
+                    {
+                        time: "11:00 - 17:30",
+                        icon: "🛍️",
+                        tag: "行街掃貨",
+                        title: "難波 ＆ 心齋橋筋商店街 購物時光",
+                        desc: "行大丸心齋橋、PARCO（有吉伊卡哇 Chiikawa / 動漫專門店）、藥妝店掃貨。買重咗可以先拎返弁天町酒店放低！"
+                    },
+                    {
+                        time: "18:00 - 22:00",
+                        icon: "♨️",
+                        tag: "必去景點",
+                        title: "空庭溫泉 OSAKA BAY TOWER（酒店同棟大樓！）",
+                        desc: "就喺你住嘅 ART 大阪灣酒店樓下！揀套靚靚浴衣，上頂樓千本鳥居、天空庭園足湯同水景花園瘋狂打卡，浸天然溫泉「美肌之湯」消除昨日 USJ 疲勞，浸完直接搭電梯返房！"
+                    }
+                ]
+            },
+            4: {
+                date: "11月17日 (星期二)",
+                title: "Day 4：勝尾寺滿山小達摩＋秋日紅葉 ➔ 梅田買手信 ➔ 二刷和牛 🍁",
+                weather: "9°C - 15°C｜箕面山區稍涼，著件保暖上衣影紅葉最靚",
+                highlight: "11月中旬正值勝尾寺紅葉季！影勻全寺小達摩＋集章明信片，下晝買星空咖啡味 Press Butter Sand。",
+                schedule: [
+                    {
+                        time: "09:30 - 13:00",
+                        icon: "🎯",
+                        tag: "大阪最強達摩打卡位",
+                        title: "箕面市「勝尾寺」賞紅葉 ＆ 尋找滿山小達摩",
+                        desc: "乘搭御堂筋線直達終點「箕面萱野站」，轉乘巴士或的士（約15分鐘）上山。沿路收集 6 個印章砌成超靚達摩明信片，同埋喺紅葉與滿山祈願小達摩前合照！"
+                    },
+                    {
+                        time: "14:00 - 18:00",
+                        icon: "🍪",
+                        tag: "手信攻略",
+                        title: "梅田商圈行街 ＆ 購買 Press Butter Sand（LUCUA B1F）",
+                        desc: "返梅田行 LUCUA、大丸梅田。喺 LUCUA 大阪店 B1F 買齊 Press Butter Sand：必搶「星空包裝珈琲口味☕」、「檸檬口味🍋」同「四重芝士/覆盆子白朱古力」！"
+                    },
+                    {
+                        time: "19:00 - 21:30",
+                        icon: "🥩",
+                        tag: "大滿足晚餐",
+                        title: "晚餐：燒肉華道（送活鮑魚帝王蟹）或 牛丸心齋橋（松葉蟹+帝王蟹）",
+                        desc: "最後一晚大餐！想食認證原塊神戶牛燒肉＋刺身握壽司就揀「燒肉華道」；想再狂食松葉蟹＋帝王蟹壽喜燒就揀「牛丸 心斎橋」！"
+                    }
+                ]
+            },
+            5: {
+                date: "11月18日 (星期三)",
+                title: "Day 5：最後衝刺補貨 / 臨空城 Outlet ➔ 滿載而歸返香港 ✈️",
+                weather: "11°C - 16°C｜注意液體戰利品全部放入大篋寄艙",
+                highlight: "20:15 晚機超充裕！下晝可以去臨空城 Outlet 睇海景買衫，再從容去機場。",
+                schedule: [
+                    {
+                        time: "10:00 - 11:00",
+                        icon: "🧳",
+                        tag: "打包秘訣",
+                        title: "酒店退房（液體藥妝入大篋・污糟衫入備用摺疊袋）",
+                        desc: "11:00 前退房。記住將所有超過 100ml 嘅化妝水、藥妝、布甸放入大篋寄艙；USJ 立體手信或怕壓嘅餅乾放隨身行李。"
+                    },
+                    {
+                        time: "11:30 - 16:45",
+                        icon: "🛍️",
+                        tag: "二選一自由配",
+                        title: "方案 A：臨空城 Rinku Premium Outlets ｜ 方案 B：難波最後衝刺",
+                        desc: "【方案 A】喺 JR 弁天町站直接坐關空快速去機場前一站「臨空城站」，寄存行李後行 Outlet 睇無敵海景！【方案 B】寄存行李喺酒店或難波，作最後藥妝補貨。"
+                    },
+                    {
+                        time: "17:15 - 20:15",
+                        icon: "🛫",
+                        tag: "回程 UO689",
+                        title: "抵達關西國際機場 (KIX) ➔ 20:15 起飛返港 (23:55 抵港)",
+                        desc: "辦理登機寄艙手續，入禁區逛免稅店買最後手信，帶著滿滿甜蜜回憶平安返香港！"
+                    }
+                ]
+            }
+        };
+
+        const usjTipsData = [
+            { id: 1, icon: "🛂", title: "1. 必帶隨身四寶", desc: "護照（退稅用）、輕便雨衣（濕身項目）、100日圓硬幣（存包用）、水壺（裝水）。" },
+            { id: 2, icon: "🪙", title: "2. 4個強制存包項目", desc: "美夢乘車遊、太空幻想列車、飛天翼龍、禁忌之旅！必須準備 100円硬幣。" },
+            { id: 3, icon: "🎭", title: "3. 體驗街頭表演＆小遊戲", desc: "唔好淨係顧住排機動遊戲，園區街頭表演同攤位小遊戲常有意外驚喜！" },
+            { id: 4, icon: "🌤️", title: "4. 提前兩天睇天氣", desc: "大阪灣區海風較大，出發前兩日確認氣溫同降雨機率。" },
+            { id: 5, icon: "☝️", title: "5. Single 單人通道超快", desc: "入口向職員講「Single」或用手指比「1」，兩個人可一齊排，快好多！" },
+            { id: 6, icon: "📱", title: "6. 善用 USJ 官方 APP", desc: "點左上角「篩選」即時睇定位、排隊時間、抽整理券、搵餐廳同洗手間。" },
+            { id: 7, icon: "🎮", title: "7. 任天堂整理券現場機", desc: "除咗你張 Express 7，如想二刷可去「園內慶典活動」右側綠色機器抽整理券。" },
+            { id: 8, icon: "🦈", title: "8. 大白鯊推薦夜晚玩", desc: "夜晚氣氛最好！行 Single 通道更快，上船揀「左側座位」體驗感最佳。" },
+            { id: 9, icon: "⌚", title: "9. 能量手環先買/租好", desc: "出發前喺香港買定或租定手環，直接戴住入園免排隊。" },
+            { id: 10, icon: "🍕", title: "10. 必吃大白鯊披薩", desc: "親善村「大白鯊披薩」CP值高、好味又啱晒影相打卡！" },
+            { id: 11, icon: "🪄", title: "11. 哈利波特魔杖終身保固", desc: "其他環球影城買嘅魔杖通用，壞咗仲可以免費換新；記得免費拎魔法地圖。" },
+            { id: 12, icon: "🔍", title: "12. 哆啦A夢＆柯南揀位秘笈", desc: "哆啦A夢排隊企左邊爭取前排；柯南坐中間偏後（基德從左側登場）。" }
+        ];
+
+        const pbsFlavors = [
+            { name: "🌌 星空包裝・珈琲口味", tag: "博主第1名強推❤️", price: "朱古力咖啡 4入參考 $128", desc: "微苦濃郁咖啡香中和內餡甜度，星空外盒靚到必收藏！", checked: true },
+            { name: "🍋 清爽檸檬口味", tag: "清新酸甜", price: "季節人氣款", desc: "酸甜清爽唔膩口，配咖啡一流。", checked: true },
+            { name: "🍯 原味焦糖奶油夾心", tag: "經典必買", price: "5入 $108｜9入 $178", desc: "雙層奶油＋焦糖內餡，送禮最穩陣。", checked: false },
+            { name: "🧀 四重芝士夾心餅", tag: "鹹甜芝士控", price: "5入 $108｜原味+芝士10入 $228", desc: "濃厚芝士香氣，微鹹微甜超酥脆。", checked: false },
+            { name: "🍓 覆盆子白朱古力", tag: "少女心首選", price: "5入 $118｜原味+覆盆子10入 $238", desc: "酸甜紅莓配幼滑白朱古力奶油。", checked: false },
+            { name: "🍫 半溶朱古力奶油", tag: "濃郁可可", price: "4入 $148｜7入 $248", desc: "奢華雙層朱古力口感。", checked: false },
+            { name: "🌰 原味+栗子+抹茶 12入", tag: "秋冬限定禮盒", price: "12入 (各4) $268", desc: "一次食齊三款日本秋冬代表口味！", checked: true },
+            { name: "🍒 紅莓朱古力味奶油", tag: "限定風味", price: "5入 $118", desc: "果香與可可完美平衡。", checked: false }
+        ];
+
+        const packingCategories = [
+            {
+                cat: "📦 放入「28吋大篋」（寄艙專用・去程留空一半）",
+                items: [
+                    { text: "所有超過 100ml 液體（卸妝水、化妝水、乳液、隱形眼鏡藥水）", done: true },
+                    { text: "真空壓縮袋 × 2–3 個（將兩個人嘅秋冬季冷衫、衛衣壓扁）", done: true },
+                    { text: "回程戰利品空間：藥妝、日本酒、布甸、杯麵全部放呢度", done: false },
+                    { text: "捲髮器 / 風筒（注意非鋰電池款式）", done: false }
+                ]
+            },
+            {
+                cat: "🎒 放入「2 個隨身行李」（嚴守 7kg 上限・貴重及怕壓物品）",
+                items: [
+                    { text: "備用大容量「可摺疊旅行袋」（可套行李拉桿款，買爆時裝污糟衫）", done: true },
+                    { text: "護照 × 2、Visit Japan Web QR Code 截圖、ICOCA 卡", done: true },
+                    { text: "USJ 門票＆Express 7 憑證、能量手環、100日圓硬幣數枚、輕便雨衣", done: true },
+                    { text: "外置充電器 (尿袋必須手提上機！)、相機、充電線", done: false },
+                    { text: "回程放怕壓手信：Press Butter Sand 餅盒、USJ 頭飾/爆谷桶", done: false }
+                ]
+            }
+        ];
+
+        // ==================== RENDER FUNCTIONS ====================
+        let currentDay = 1;
+
+        function selectDay(dayNum) {
+            currentDay = dayNum;
+            playSoftClick();
+            // Update button styles
+            for (let i = 1; i <= 5; i++) {
+                const btn = document.getElementById(`dayBtn-${i}`);
+                if (i === dayNum) {
+                    btn.className = "day-pill p-3 rounded-2xl border-2 transition text-center bg-gradient-to-b from-[#E84A5F] to-[#FF6B6B] text-white border-[#E84A5F] shadow-md transform -translate-y-0.5";
+                } else {
+                    btn.className = "day-pill p-3 rounded-2xl border-2 transition text-center bg-white text-[#4A3531] border-pink-200 hover:border-pink-400";
+                }
+            }
+
+            const data = itineraryData[dayNum];
+            const container = document.getElementById('dayContentContainer');
+
+            let scheduleHtml = data.schedule.map((item, idx) => `
+                <div class="flex gap-3.5 sm:gap-5 items-start group">
+                    <div class="flex flex-col items-center">
+                        <div class="w-11 h-11 rounded-2xl bg-pink-50 border-2 border-pink-200 flex items-center justify-center text-xl shadow-sm group-hover:scale-110 transition">
+                            ${item.icon}
+                        </div>
+                        ${idx < data.schedule.length - 1 ? '<div class="w-0.5 h-14 bg-pink-200/80 my-1"></div>' : ''}
+                    </div>
+                    <div class="flex-1 bg-white border border-pink-100 rounded-2xl p-4 shadow-sm hover:border-pink-300 transition">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-black text-[#E84A5F] bg-rose-50 px-2.5 py-0.5 rounded-lg">⏰ ${item.time}</span>
+                            <span class="text-[11px] font-bold text-amber-800 bg-amber-100/80 px-2.5 py-0.5 rounded-full">${item.tag}</span>
+                        </div>
+                        <h4 class="font-black text-base text-[#4A3531] mt-2">${item.title}</h4>
+                        <p class="text-xs text-gray-600 mt-1 leading-relaxed">${item.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            let quickActionBtn = '';
+            if (dayNum === 1) {
+                quickActionBtn = `
+                    <button onclick="switchMainSection('day1route')" class="px-4 py-2 bg-[#E84A5F] text-white rounded-xl text-xs font-bold shadow hover:opacity-95 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-train-subway"></i>
+                        <span>睇 Day 1 機場＆一楽地鐵轉乘圖</span>
+                    </button>
+                `;
+            } else if (dayNum === 2) {
+                quickActionBtn = `
+                    <button onclick="switchMainSection('usj')" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-xs font-bold shadow hover:opacity-95 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-ticket"></i>
+                        <span>打開 USJ 快證時間表＆12條秘笈</span>
+                    </button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-5 border-b border-pink-100">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-0.5 bg-pink-100 text-[#E84A5F] rounded-full text-xs font-bold">${data.date}</span>
+                            <span class="text-xs text-gray-500 font-medium">🌤️ ${data.weather}</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-[#4A3531] mt-2">${data.title}</h2>
+                        <p class="text-xs text-amber-700 font-bold mt-1">✨ 重點：${data.highlight}</p>
+                    </div>
+                    ${quickActionBtn}
+                </div>
+                <div class="mt-6 space-y-3">
+                    ${scheduleHtml}
+                </div>
+            `;
+        }
+
+        function renderUsjTips() {
+            const grid = document.getElementById('usjTipsGrid');
+            grid.innerHTML = usjTipsData.map((tip, index) => `
+                <div onclick="toggleTipCard(this)" class="cursor-pointer p-4 rounded-2xl border-2 border-pink-100 bg-white hover:border-pink-300 transition flex items-start gap-3 select-none">
+                    <div class="text-2xl shrink-0">${tip.icon}</div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between gap-1">
+                            <h4 class="font-bold text-sm text-[#4A3531]">${tip.title}</h4>
+                            <i class="fa-regular fa-circle-check text-gray-300 check-icon text-base"></i>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1 leading-relaxed">${tip.desc}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function toggleTipCard(el) {
+            playSoftClick();
+            const icon = el.querySelector('.check-icon');
+            if (el.classList.contains('bg-emerald-50/70')) {
+                el.classList.remove('bg-emerald-50/70', 'border-emerald-300');
+                el.classList.add('bg-white', 'border-pink-100');
+                icon.className = 'fa-regular fa-circle-check text-gray-300 check-icon text-base';
+            } else {
+                el.classList.remove('bg-white', 'border-pink-100');
+                el.classList.add('bg-emerald-50/70', 'border-emerald-300');
+                icon.className = 'fa-solid fa-circle-check text-emerald-500 check-icon text-base';
+            }
+        }
+
+        function renderPbsFlavors() {
+            const grid = document.getElementById('pbsGrid');
+            grid.innerHTML = pbsFlavors.map((item, idx) => `
+                <div onclick="togglePbs(${idx})" class="cursor-pointer p-4 rounded-2xl border-2 transition select-none flex flex-col justify-between ${item.checked ? 'bg-amber-50/90 border-amber-400 shadow-sm' : 'bg-white border-pink-100 hover:border-pink-300'}">
+                    <div>
+                        <div class="flex items-center justify-between gap-1">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${item.checked ? 'bg-[#E84A5F] text-white' : 'bg-pink-100 text-pink-700'}">${item.tag}</span>
+                            <span class="text-sm">${item.checked ? '❤️ 已揀' : '🤍'}</span>
+                        </div>
+                        <h4 class="font-black text-sm mt-2 text-[#4A3531]">${item.name}</h4>
+                        <p class="text-xs text-gray-500 mt-1">${item.desc}</p>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-pink-100 text-[11px] font-bold text-amber-800">
+                        參考代購價：${item.price}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function togglePbs(idx) {
+            playSoftClick();
+            pbsFlavors[idx].checked = !pbsFlavors[idx].checked;
+            renderPbsFlavors();
+        }
+
+        function renderPackingList() {
+            const grid = document.getElementById('packingGrid');
+            let total = 0;
+            let completed = 0;
+
+            grid.innerHTML = packingCategories.map((group, gIdx) => {
+                const listHtml = group.items.map((item, iIdx) => {
+                    total++;
+                    if (item.done) completed++;
+                    return `
+                        <label onclick="togglePackItem(${gIdx}, ${iIdx})" class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition select-none ${item.done ? 'bg-teal-50/70 border-teal-300 text-teal-950' : 'bg-white border-pink-100 hover:bg-pink-50/40'}">
+                            <span class="mt-0.5 text-base">${item.done ? '✅' : '⬜'}</span>
+                            <span class="text-xs font-medium leading-relaxed ${item.done ? 'line-through opacity-75' : ''}">${item.text}</span>
+                        </label>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-pink-50/40 border border-pink-200 rounded-2xl p-4 space-y-2.5">
+                        <h3 class="font-black text-sm text-[#4A3531]">${group.cat}</h3>
+                        <div class="space-y-2">${listHtml}</div>
+                    </div>
+                `;
+            }).join('');
+
+            const pct = Math.round((completed / total) * 100);
+            document.getElementById('packProgressText').innerText = `${pct}%`;
+            document.getElementById('packProgressBar').style.width = `${pct}%`;
+        }
+
+        function togglePackItem(gIdx, iIdx) {
+            playSoftClick();
+            packingCategories[gIdx].items[iIdx].done = !packingCategories[gIdx].items[iIdx].done;
+            renderPackingList();
+        }
+
+        function switchMainSection(secId) {
+            playSoftClick();
+            const sections = ['daily', 'day1route', 'usj', 'food', 'luggage'];
+            sections.forEach(id => {
+                const el = document.getElementById(`sec-${id}`);
+                const nav = document.getElementById(`nav-${id}`);
+                if (id === secId) {
+                    el.classList.remove('hidden');
+                    nav.className = "main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-[#E84A5F] text-white shadow-md";
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = "main-nav-btn shrink-0 px-4 py-2.5 rounded-2xl font-bold text-sm transition flex items-center gap-2 bg-white text-[#4A3531] border border-pink-200 hover:bg-pink-50";
+                }
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Clipboard Helper (No navigator.clipboard dependency issues)
+        function copyText(text, message) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast(message || '已複製到剪貼簿！', '📋');
+            playCheerChime();
+        }
+
+        function showToast(msg, icon = '✨') {
+            const box = document.getElementById('toastBox');
+            document.getElementById('toastText').innerText = msg;
+            document.getElementById('toastIcon').innerText = icon;
+            box.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                box.classList.add('translate-y-24', 'opacity-0');
+            }, 2600);
+        }
+
+        // Surprise Modal
+        function openSurpriseModal() {
+            playCheerChime();
+            const modal = document.getElementById('surpriseModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeSurpriseModal() {
+            const modal = document.getElementById('surpriseModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Cute Web Audio / Tone.js Chimes
+        function playSoftClick() {
+            try {
+                if (window.Tone && Tone.context.state === 'running') {
+                    const synth = new Tone.Synth({
+                        oscillator: { type: 'sine' },
+                        envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.05 }
+                    }).toDestination();
+                    synth.volume.value = -16;
+                    synth.triggerAttackRelease('C6', '32n');
+                }
+            } catch (e) {}
+        }
+
+        async function playCheerChime() {
+            try {
+                if (window.Tone) {
+                    await Tone.start();
+                    const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+                    synth.volume.value = -14;
+                    const now = Tone.now();
+                    synth.triggerAttackRelease('E5', '16n', now);
+                    synth.triggerAttackRelease('G5', '16n', now + 0.08);
+                    synth.triggerAttackRelease('C6', '8n', now + 0.16);
+                }
+            } catch (e) {}
+        }
+
+        // ==================== CANVAS FALLING MAPLE / SAKURA / FOOD PARTICLES ====================
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const themes = [
+            { name: '紅葉特效', icon: '🍁', symbols: ['🍁', '🍂', '✨', '🌸'] },
+            { name: '愛心驚喜', icon: '💖', symbols: ['💖', '💕', '✨', '🎀'] },
+            { name: '大阪美食', icon: '🦀', symbols: ['🦀', '🥩', '🍄', '🎯'] }
+        ];
+        let currentThemeIdx = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = window.innerWidth < 640 ? 14 : 24;
+            for (let i = 0; i < count; i++) {
+                particles.push(createParticle());
+            }
+        }
+
+        function createParticle(yOverride) {
+            const symbols = themes[currentThemeIdx].symbols;
+            return {
+                x: Math.random() * canvas.width,
+                y: yOverride !== undefined ? yOverride : Math.random() * canvas.height,
+                size: 14 + Math.random() * 10,
+                speedY: 0.5 + Math.random() * 1.1,
+                speedX: -0.4 + Math.random() * 0.8,
+                angle: Math.random() * Math.PI * 2,
+                spin: (Math.random() - 0.5) * 0.02,
+                symbol: symbols[Math.floor(Math.random() * symbols.length)],
+                opacity: 0.35 + Math.random() * 0.45
+            };
+        }
+
+        function cycleParticleTheme() {
+            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+            document.getElementById('themeIcon').innerText = themes[currentThemeIdx].icon;
+            document.getElementById('themeLabel').innerText = themes[currentThemeIdx].name;
+            initParticles();
+            playCheerChime();
+            showToast(`已切換為「${themes[currentThemeIdx].name}」！`, themes[currentThemeIdx].icon);
+        }
+
+        function triggerHeartShower() {
+            currentThemeIdx = 1;
+            document.getElementById('themeIcon').innerText = themes[1].icon;
+            document.getElementById('themeLabel').innerText = themes[1].name;
+            for (let i = 0; i < 18; i++) {
+                particles.push(createParticle(-20));
+            }
+            showToast('出發啦！祝你哋有最甜蜜嘅大阪之旅 💖', '🎉');
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                p.y += p.speedY;
+                p.x += p.speedX + Math.sin(p.angle) * 0.3;
+                p.angle += p.spin;
+
+                if (p.y > canvas.height + 30) {
+                    particles[i] = createParticle(-20);
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.opacity;
+                ctx.font = `${p.size}px sans-serif`;
+                ctx.translate(p.x, p.y);
+                ctx.rotate(Math.sin(p.angle) * 0.3);
+                ctx.fillText(p.symbol, 0, 0);
+                ctx.restore();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.onload = function () {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            selectDay(1);
+            renderUsjTips();
+            renderPbsFlavors();
+            renderPackingList();
+            initParticles();
+            animateParticles();
+        };
+    </script>
+</body>
+</html>
